@@ -50,7 +50,7 @@
     <Compile Include="Converters\StringConverter.cs" />
     <Compile Include="Converters\StringConverterFactory.cs" />
     <Compile Include="Attributes\DatabaseMappingAttribute.cs" />
-    <Compile Include="DatabaseTextFileImport.cs" />
+    <Compile Include="MsSqlServerDatabaseTextFileImport.cs" />
     <Compile Include="Exceptions\TETLBadDataException.cs" />
     <Compile Include="Exceptions\TETLConversionException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
