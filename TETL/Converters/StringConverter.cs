@@ -11,7 +11,7 @@ namespace TETL.Converters
         
         public override void SetValue(object target, string value)
         {
-            _setter((T)target, value);
+            _setter((T)target, value?.Trim());
         }
     }
 }
