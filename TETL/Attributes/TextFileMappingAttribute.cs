@@ -4,10 +4,8 @@ namespace TETL.Attributes
 {
     public class TextFileMappingAttribute : Attribute
     {
-        public string ColumnName { get; set; }       
-        
+        public string ColumnName { get; set; }        
         public int? ColumnOrdinal { get; set; }
-
         public string DateTimeFormat { get; set; }
 
         internal void ThrowIfInvalid()

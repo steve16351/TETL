@@ -10,21 +10,38 @@ namespace TETL
 {
     public class DatabaseTextFileImport<T> : IDisposable where T : new()
     {
+        /// <summary>
+        /// Contains the current buffer of data to save to the database
+        /// </summary>
+        public DataTable Buffer { get; set; }
+        /// <summary>
+        /// Custom transformation action to perform on the target object
+        /// </summary>
+        public Action<T> TransformAction { get; set; }
+        /// <summary>
+        /// Maximum number of rows in the datatable before the data is flushed
+        /// to the database
+        /// </summary>
         public int? BatchSize { get; set; }
-
+        /// <summary>
+        /// Target table name
+        /// </summary>
         public string TableName { get; set; }
 
+        /// <summary>
+        /// Meta data found on the target type for database mapping
+        /// </summary>
+        public IEnumerable<DatabaseMappingMetaData> MetaData { get; set; }
+        
         private TextFileSerializer<T> TextFileReader { get; set; }
-
         private bool _isInitialised = false;
+        private const int BATCH_SIZE_DEFAULT = 1000;        
 
-        private const int BATCH_SIZE_DEFAULT = 1000;
 
         public DatabaseTextFileImport()
         {
 
         }
-
 
         public DatabaseTextFileImport(TextFileSerializer<T> textFileSerializer) : this()
         {
@@ -43,11 +60,10 @@ namespace TETL
             {
                 Delimiter = delimiter,
                 FirstRowHeader = firstRowHeader,
-                SkipRows = skipRows
+                SkipHeaderRows = skipRows
             };
         }
-
-
+        
         /// <summary>
         /// Build meta data on the target type
         /// </summary>
@@ -96,7 +112,11 @@ namespace TETL
             return table;
         }
 
-        public void WriteToTable(string tableName)
+        /// <summary>
+        /// Extract data from the text file and send to the database
+        /// </summary>
+        /// <param name="tableName">Table name to target</param>
+        public void Extract(string tableName)
         {
             if (!_isInitialised)
                 Initialise();
@@ -127,12 +147,6 @@ namespace TETL
         {
             TextFileReader?.Dispose();
         }
-
-        public DataTable Buffer { get; set; }
-
-        public Action<T> TransformAction { get; set; }
-
-        public IEnumerable<DatabaseMappingMetaData> MetaData { get; set; }
 
         public class DatabaseMappingMetaData
         {
@@ -183,7 +197,5 @@ namespace TETL
             public PropertyInfo Property { get; set; }
             public DatabaseMappingAttribute Mapping { get; set; }
         }
-
-
     }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using TETL.Attributes;
 using TETL.Converters;
+using TETL.Exceptions;
 
 namespace TETL
 {
@@ -15,6 +16,7 @@ namespace TETL
         private StreamWriter _writeStream = null;
         private Stream _inputStream;
         private string _fileName = null;
+        private bool _writeInitialised = false;
 
         public TextFileSerializer(Stream stream) : this()
         {
@@ -34,7 +36,11 @@ namespace TETL
         /// <summary>
         /// Number of rows at the top of the file to skip
         /// </summary>
-        public int SkipRows { get; set; }
+        public int SkipHeaderRows { get; set; }
+        /// <summary>
+        /// Number of rows to skip at the end of the file
+        /// </summary>
+        public int SkipFooterRows { get; set; }
         /// <summary>
         /// First row contains column headings
         /// </summary>
@@ -43,78 +49,19 @@ namespace TETL
         /// Delimiter to spit rows into columns
         /// </summary>
         public string Delimiter { get; set; }
+        /// <summary>
+        /// All meta data
+        /// </summary>
+        public ColumnMetaData[] MetaData { get; set; }
+        /// <summary>
+        /// Relevant meta data for mapping
+        /// </summary>
+        public ColumnMetaData[] RelevantMetaData { get; set; }
         
-        public class ColumnMetaData
-        {
-            /// <summary>
-            /// Ordinal of this column in the text file
-            /// </summary>
-            public int Ordinal { get; set; }
-            /// <summary>
-            /// Column heading in the text file
-            /// </summary>
-            public string ColumnHeader { get; set; }
-            /// <summary>
-            /// Property on the target type
-            /// </summary>
-            public PropertyInfo TargetProperty { get; set; }
-
-            /// <summary>
-            /// Is this relevant for serialisation/deserialisation (i.e. does it have a mapping to/from the target type)
-            /// </summary>
-            public bool Ignore
-            {
-                get
-                {
-                    return TargetProperty == null;
-                }
-            }
-
-            /// <summary>
-            /// Does this mapping attribute match this column?
-            /// </summary>
-            /// <param name="mappingAttribute">Mapping attribute to check</param>
-            /// <returns>True if a match, via either the column name or the ordinal</returns>
-            public bool IsMatch(TextFileMappingAttribute mappingAttribute)
-            {
-                if (mappingAttribute.ColumnOrdinal.HasValue && Ordinal == mappingAttribute.ColumnOrdinal.Value)
-                    return true;
-
-                if (mappingAttribute.ColumnName != null && ColumnHeader != null && ColumnHeader.Equals(mappingAttribute.ColumnName, StringComparison.OrdinalIgnoreCase))
-                    return true;
-
-                return false;
-            }
-
-            /// <summary>
-            /// Set the target property and corresponding mapping data
-            /// </summary>
-            /// <param name="target">Target property info on the target type</param>
-            /// <param name="mappingAttribute">Mapping attribute</param>
-            public void SetTarget(PropertyInfo target, TextFileMappingAttribute mappingAttribute)
-            {
-                TargetProperty = target;
-                MappingAttribute = mappingAttribute;
-                _converter = StringConverterFactory<T>.Get(TargetProperty, MappingAttribute);
-            }
-            
-            private IConvertAndSet _converter;
-
-            public TextFileMappingAttribute MappingAttribute { get; set; }
-            
-            public string GetValue(T target)
-            {
-                return _converter.GetValue(target);
-            }
-
-            public void SetValue(T target, string value)
-            {
-                _converter.SetValue(target, value);
-            }
-            
-        }
-
-        public void InitialiseWrite()
+        /// <summary>
+        /// Initialise for write operations
+        /// </summary>
+        private void InitialiseWrite()
         {
             Initialise();
 
@@ -146,10 +93,10 @@ namespace TETL
         /// <summary>
         /// Initialise the serializer for reading
         /// </summary>
-        public void InitialiseRead()
+        private void InitialiseRead()
         {
             Initialise();
-
+            ReadBuffer = new Queue<string>(SkipFooterRows);
             if (_inputStream == null && _fileName == null) throw new InvalidOperationException("Expected input stream or file name");
 
             if (_inputStream == null && _fileName != null)
@@ -160,9 +107,9 @@ namespace TETL
             if (_readStream.BaseStream.CanSeek)
                 _readStream.BaseStream.Position = 0;
 
-            for (int i = 0; i < SkipRows; i++)
+            for (int i = 0; i < SkipHeaderRows; i++)
             {
-                if (_readStream.EndOfStream) throw new ArgumentException($"SkipRows ({SkipRows}) contains more rows than there are lines in the file");
+                if (_readStream.EndOfStream) throw new ArgumentException($"SkipRows ({SkipHeaderRows}) contains more rows than there are lines in the file");
                 _readStream.ReadLine();
             }
 
@@ -205,6 +152,7 @@ namespace TETL
             RelevantMetaData = MetaData
                 .Where(a => !a.Ignore)
                 .ToArray();
+
         }
 
         private bool _isInitialised = false;
@@ -242,18 +190,8 @@ namespace TETL
             MappingAttributes = mappings;
             _isInitialised = true;
         }
-
-        private class PropertyToAttributeMap
-        {
-            public PropertyInfo Property { get; set; }
-            public TextFileMappingAttribute Mapping { get; set; }
-        }
-
+        
         private IEnumerable<PropertyToAttributeMap> MappingAttributes { get; set; }
-
-        public ColumnMetaData[] MetaData { get; set; }
-
-        public ColumnMetaData[] RelevantMetaData { get; set; }
 
         /// <summary>
         /// Current line number we are on
@@ -261,6 +199,8 @@ namespace TETL
         public int LineNo { get; private set; }
 
         private string[] _currentLine = null;
+
+        private Queue<string> ReadBuffer;
 
         public string[] CurrentLine
         {
@@ -283,7 +223,6 @@ namespace TETL
         /// </summary>
         public bool AppendMode { get; set; }
 
-        private bool _writeInitialised = false;
 
         /// <summary>
         /// Preamble lines
@@ -348,19 +287,55 @@ namespace TETL
         }
 
         /// <summary>
+        /// Read the next line from the stream 
+        /// into the buffer
+        /// </summary>
+        /// <returns>True if there are more lines to read</returns>
+        private bool ReadNextWithBuffer()
+        {
+            // if we have to skip some footer rows, then check ahead because we need
+            // to know where the end of the file is before we get there
+            while (ReadBuffer.Count < (this.SkipFooterRows + 1))
+            {
+                if (_readStream.EndOfStream)
+                    break;
+
+                ReadBuffer.Enqueue(_readStream.ReadLine());
+            }
+
+            if (_readStream.EndOfStream && ReadBuffer.Count == SkipFooterRows)
+            {
+                _currentLine = null;
+                return false; // we reached the end of the file
+            }
+
+            LineNo++;
+
+            string nextLine = ReadBuffer.Dequeue();
+            _currentLine = nextLine
+                .Split(new[] { Delimiter }, StringSplitOptions.None);
+
+            return true;
+        }
+
+        /// <summary>
         /// Read the next line from the stream
         /// </summary>
         /// <returns></returns>
         private bool ReadNext()
         {
+            if (SkipFooterRows > 0) return ReadNextWithBuffer();
+
             if (_readStream.EndOfStream)
             {
                 _currentLine = null;
-                return false;
+                return false; // we reached the end of the file
             }
-
+            
             LineNo++;
-            _currentLine = _readStream.ReadLine()
+
+            string nextLine = _readStream.ReadLine();
+            _currentLine = nextLine
                 .Split(new[] { Delimiter }, StringSplitOptions.None);
 
             return true;
@@ -381,6 +356,87 @@ namespace TETL
         IEnumerator IEnumerable.GetEnumerator()
         {
             return this.GetEnumerator();
+        }
+
+
+        private class PropertyToAttributeMap
+        {
+            public PropertyInfo Property { get; set; }
+            public TextFileMappingAttribute Mapping { get; set; }
+        }
+
+        /// <summary>
+        /// Column meta data, the position of the column, the column heading,
+        /// the mapping information to the target object
+        /// </summary>
+        public class ColumnMetaData
+        {
+            /// <summary>
+            /// Ordinal of this column in the text file
+            /// </summary>
+            public int Ordinal { get; set; }
+            /// <summary>
+            /// Column heading in the text file
+            /// </summary>
+            public string ColumnHeader { get; set; }
+            /// <summary>
+            /// Property on the target type
+            /// </summary>
+            public PropertyInfo TargetProperty { get; set; }
+
+            /// <summary>
+            /// Is this relevant for serialisation/deserialisation (i.e. does it have a mapping to/from the target type)
+            /// </summary>
+            public bool Ignore
+            {
+                get
+                {
+                    return TargetProperty == null;
+                }
+            }
+
+            /// <summary>
+            /// Does this mapping attribute match this column?
+            /// </summary>
+            /// <param name="mappingAttribute">Mapping attribute to check</param>
+            /// <returns>True if a match, via either the column name or the ordinal</returns>
+            public bool IsMatch(TextFileMappingAttribute mappingAttribute)
+            {
+                if (mappingAttribute.ColumnOrdinal.HasValue && Ordinal == mappingAttribute.ColumnOrdinal.Value)
+                    return true;
+
+                if (mappingAttribute.ColumnName != null && ColumnHeader != null && ColumnHeader.Equals(mappingAttribute.ColumnName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+
+                return false;
+            }
+
+            /// <summary>
+            /// Set the target property and corresponding mapping data
+            /// </summary>
+            /// <param name="target">Target property info on the target type</param>
+            /// <param name="mappingAttribute">Mapping attribute</param>
+            public void SetTarget(PropertyInfo target, TextFileMappingAttribute mappingAttribute)
+            {
+                TargetProperty = target;
+                MappingAttribute = mappingAttribute;
+                _converter = StringConverterFactory<T>.Get(TargetProperty, MappingAttribute);
+            }
+
+            private IConvertAndSet _converter;
+
+            public TextFileMappingAttribute MappingAttribute { get; set; }
+
+            public string GetValue(T target)
+            {
+                return _converter.GetValue(target);
+            }
+
+            public void SetValue(T target, string value)
+            {
+                _converter.SetValue(target, value);
+            }
+
         }
 
 
@@ -411,8 +467,35 @@ namespace TETL
 
                 foreach (ColumnMetaData metaData in _parent.RelevantMetaData)
                 {
+                    if (_parent.CurrentLine.Length <= metaData.Ordinal)
+                    {
+                        throw new TETLBadDataException($"Insuffient field length on line {_parent.LineNo}, trying to read field #{(metaData.Ordinal + 1)}, but source line only has {_parent.CurrentLine.Length} field(s)")
+                        {
+                            LineNo = _parent.LineNo,
+                            Line = _parent.CurrentLine
+                        };
+                    }                   
+
                     var value = _parent.CurrentLine[metaData.Ordinal];
-                    metaData.SetValue(_current, value);
+
+                    try
+                    {
+                        metaData.SetValue(_current, value);
+                    }
+                    catch (Exception conversionEx)
+                    {
+                        var sourceColumn = metaData.ColumnHeader + $" ({metaData.Ordinal})" ?? "Column " + metaData.Ordinal;
+                        string errorMessage = $"Conversion problem on line {_parent.LineNo}, column \"{sourceColumn}\" could not convert value \"{value}\" to the target type of \"{metaData.TargetProperty.PropertyType.Name}\" for property \"{metaData.TargetProperty.Name}\"";
+
+                        throw new TETLConversionException(errorMessage, conversionEx)
+                        {
+                            LineNumber = _parent.LineNo,
+                            TargetProperty = metaData.TargetProperty,
+                            TargetType = metaData.TargetProperty.PropertyType,
+                            SourceColumn = metaData.ColumnHeader ?? "Column " + metaData.Ordinal,
+                            Line = _parent.CurrentLine
+                        };
+                    }
                 }
 
                 return true;

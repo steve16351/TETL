@@ -11,6 +11,9 @@ namespace TETL.Converters
         
         public override void SetValue(object target, string value)
         {
+            if (String.IsNullOrWhiteSpace(value))
+                value = null;
+
             _setter((T)target, value?.Trim());
         }
     }
