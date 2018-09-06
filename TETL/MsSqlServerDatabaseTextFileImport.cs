@@ -159,9 +159,12 @@ namespace TETL
         private static readonly Dictionary<string, Type> _sqlTypeMap = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
         {
             { "char", typeof(string) },
+            { "uniqueidentifier", typeof(Guid) },
             { "varchar", typeof(string) },
             { "float", typeof(double) },
             { "int", typeof(int) },
+            { "bit", typeof(bool) },
+            { "decimal", typeof(decimal) },
             { "datetime", typeof(DateTime) }
         };
 
@@ -191,39 +194,30 @@ namespace TETL
                 throw new ArgumentNullException("Connection");
 
             RowsSaved = 0;
-            _writeTimer = Stopwatch.StartNew();
-
-            // create the data table
+            _writeTimer = Stopwatch.StartNew();            
             Buffer = CreateTable(tableName);
 
             foreach (T row in TextFileReader)
             {
                 TransformObject?.Invoke(row);
-
                 var dataRow = Buffer.NewRow();
 
-                foreach (var metaData in MetaData)
-                {
-                    dataRow[metaData.Ordinal] = metaData.GetValue(row) ?? DBNull.Value;
-                }
+                foreach (var metaData in MetaData)                
+                    dataRow[metaData.Ordinal] = metaData.GetValue(row) ?? DBNull.Value;                
 
                 TransformDataRow?.Invoke(dataRow);
                 Buffer.Rows.Add(dataRow);
-
                 ExecuteFlush(false, tableName);
             }
 
             // execute final flush
             ExecuteFlush(true, tableName);
-
             _writeTimer.Stop();
         }
 
         public SqlConnection Connection { get; set; }
         public SqlTransaction Transaction { get; set; }
-
         public event FlushEventHandler OnFlush;
-
         public delegate void FlushEventHandler(FlushEventArgs e);
 
         public class FlushEventArgs
@@ -234,9 +228,7 @@ namespace TETL
         }
 
         private Stopwatch _writeTimer = null;
-
         public int RowsSaved { get; private set; }
-
         private Task _flushTask = null;
 
         public bool ExecuteFlush(bool final, string tableName)
