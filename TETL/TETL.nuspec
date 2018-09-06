@@ -1,0 +1,14 @@
+﻿<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>TETL</id>
+    <version>1.0.0</version>
+    <authors>Steve Hart</authors>
+    <licenseUrl>https://github.com/steve16351/TETL</licenseUrl>
+    <projectUrl>https://github.com/steve16351/TETL</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>C# Library to transform, extract and load text files</description>
+    <summary>Lightweight C# library to facilitate text file serialisation</summary>
+    <language>en-GB</language>
+  </metadata>
+</package>
