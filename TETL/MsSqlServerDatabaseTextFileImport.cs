@@ -24,7 +24,7 @@ namespace TETL
         /// <summary>
         /// Custom transformation action to perform on the target database row
         /// </summary>
-        public Action<DataRow> TransformDataRow { get; set; }
+        public Action<DataRow, T> TransformDataRow { get; set; }
         /// <summary>
         /// Maximum number of rows in the datatable before the data is flushed
         /// to the database
@@ -207,7 +207,7 @@ namespace TETL
                     dataRow[metaData.Ordinal] = metaData.GetValue(row) ?? DBNull.Value;
                 }
 
-                TransformDataRow?.Invoke(dataRow);
+                TransformDataRow?.Invoke(dataRow, row);
                 Buffer.Rows.Add(dataRow);
 
                 ExecuteFlush(false, tableName);
