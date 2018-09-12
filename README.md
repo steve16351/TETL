@@ -8,10 +8,12 @@ Textfile Extract, Transform and Load is a lightweight .NET library to facilitate
 
 Given a text file you wish to deserialize to a .NET object:
 
-> Name;Weight;Height
-> Fred;71.3;165
-> Andy;80.2;180
-> Jane;63.5;160
+```
+Name;Weight;Height
+Fred;71.3;165
+Andy;80.2;180
+Jane;63.5;160
+```
 
 ### 1 First Decorate your class with the TextFileMappingAttribute
 ```csharp
