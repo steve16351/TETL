@@ -1,5 +1,5 @@
 # TETL
-Textfile Extract, Transform and Load is a lightweight .NET library to facilitate text file serialisation to objects, and then on to database endpoints. It is designed to handle large amounts of data by dealing with streams, so it is able to process the file row by row performing operations as required rather than having to have the entire file in memory at any one time.
+**T**extfile **E**xtract, **T**ransform and **L**oad is a lightweight .NET library to facilitate text file serialisation to objects, and then on to database endpoints. It is designed to handle large amounts of data by dealing with streams, so it is able to process the file row by row performing operations as required rather than having to have the entire file in memory at any one time.
 
 You might want to use this if using SSIS to load and transform your data isn't practical due to licencing concerns, or you'd rather not have a pure .NET solution for a simple ETL task.
 
