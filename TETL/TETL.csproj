@@ -44,6 +44,7 @@
     <Compile Include="Converters\BoolConverter.cs" />
     <Compile Include="Converters\DateTimeConverter.cs" />
     <Compile Include="Converters\DecimalConverter.cs" />
+    <Compile Include="Converters\DoubleConverter.cs" />
     <Compile Include="Converters\IConverter.cs" />
     <Compile Include="Converters\Int32Converter.cs" />
     <Compile Include="Converters\Int64Converter.cs" />
@@ -59,20 +60,18 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="TETL.nuspec">
+    <None Include="nuget\TETL.nuspec">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>del $(TargetDir)\*.nupkg
-rmdir $(TargetDir)\lib /s/q
-mkdir $(TargetDir)\lib
-mkdir $(TargetDir)\lib\net
-copy $(TargetDir)\TETL.dll  $(TargetDir)\lib\net /Y
-copy $(TargetDir)\TETL.pdb  $(TargetDir)\lib\net /Y
-del $(TargetDir)\TETL.dll 
-del $(TargetDir)\TETL.pdb
-$(SolutionDir)packages\NuGet.CommandLine.4.7.1\tools\Nuget.exe pack $(TargetDir)TETL.nuspec -Symbols</PostBuildEvent>
+rmdir $(TargetDir)\nuget\lib /s/q
+mkdir $(TargetDir)\nuget\lib
+mkdir $(TargetDir)\nuget\lib\net
+copy $(TargetDir)\TETL.dll  $(TargetDir)\nuget\lib\net /Y
+copy $(TargetDir)\TETL.pdb  $(TargetDir)\nuget\lib\net /Y
+$(SolutionDir)packages\NuGet.CommandLine.4.7.1\tools\Nuget.exe pack $(TargetDir)nuget\TETL.nuspec -Symbols</PostBuildEvent>
   </PropertyGroup>
 </Project>

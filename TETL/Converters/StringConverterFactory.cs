@@ -13,6 +13,8 @@ namespace TETL.Converters
         {
             _converters = new Dictionary<Type, Type>();
             _converters.Add(typeof(string), typeof(StringConverter<T>));
+            _converters.Add(typeof(double), typeof(DoubleConverter<T>));
+            _converters.Add(typeof(double?), typeof(DoubleConverter<T>));
             _converters.Add(typeof(decimal), typeof(DecimalConverter<T>));
             _converters.Add(typeof(decimal?), typeof(NullableDecimalConverter<T>));
             _converters.Add(typeof(DateTime), typeof(DateTimeConverter<T>));

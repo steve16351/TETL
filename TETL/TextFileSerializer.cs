@@ -76,7 +76,7 @@ namespace TETL
                 .Select((mappingAttribute, ordinal) => new ColumnMetaData()
                 {
                     ColumnHeader = mappingAttribute.Mapping.ColumnName,
-                    Ordinal = mappingAttribute.Mapping.ColumnOrdinal.HasValue ? mappingAttribute.Mapping.ColumnOrdinal.Value : ordinal,
+                    Ordinal = mappingAttribute.Mapping.InternalColumnOrdinal.HasValue ? mappingAttribute.Mapping.InternalColumnOrdinal.Value : ordinal,
                     MappingAttribute = mappingAttribute.Mapping,
                     TargetProperty = mappingAttribute.Property
                 })
@@ -96,13 +96,14 @@ namespace TETL
         private void InitialiseRead()
         {
             Initialise();
-            ReadBuffer = new Queue<string>(SkipFooterRows);
+            _readBuffer = new Queue<string>(SkipFooterRows);
             if (_inputStream == null && _fileName == null) throw new InvalidOperationException("Expected input stream or file name");
 
             if (_inputStream == null && _fileName != null)
                 _inputStream = new FileStream(_fileName, FileMode.Open);
 
             _readStream = new StreamReader(_inputStream);
+            LineNo = 0;
 
             if (_readStream.BaseStream.CanSeek)
                 _readStream.BaseStream.Position = 0;
@@ -111,10 +112,12 @@ namespace TETL
             {
                 if (_readStream.EndOfStream) throw new ArgumentException($"SkipRows ({SkipHeaderRows}) contains more rows than there are lines in the file");
                 _readStream.ReadLine();
+                LineNo++;
             }
 
             if (FirstRowHeader)
             {
+                LineNo++;
                 var headerRow = _readStream.ReadLine();
                 if (String.IsNullOrWhiteSpace(headerRow))
                     throw new InvalidOperationException($"No header row found but one was expected");
@@ -132,7 +135,7 @@ namespace TETL
 
             if (!FirstRowHeader)
             {
-                MetaData = _currentLine
+                MetaData = CurrentLine
                     .Select((a, i) => new ColumnMetaData() { ColumnHeader = null, Ordinal = i })
                     .ToArray();
             }
@@ -141,9 +144,9 @@ namespace TETL
             {
                 var matchedMeta = MetaData.Where(a => a.IsMatch(mapping.Mapping));
                 if (!matchedMeta.Any())
-                    throw new ArgumentException($"For mapping attribute on column {(mapping.Mapping.ColumnOrdinal.HasValue ? mapping.Mapping.ColumnOrdinal.ToString() : $"\"{mapping.Mapping.ColumnName}\"")}, no match was found in the file");
+                    throw new ArgumentException($"For mapping attribute on column {(mapping.Mapping.InternalColumnOrdinal.HasValue ? mapping.Mapping.ColumnOrdinal.ToString() : $"\"{mapping.Mapping.ColumnName}\"")}, no match was found in the file");
                 if (matchedMeta.Count() > 1)
-                    throw new ArgumentException($"For mapping attribute on column ({(mapping.Mapping.ColumnOrdinal.HasValue ? mapping.Mapping.ColumnOrdinal.ToString() : mapping.Mapping.ColumnName)}), multiple possible matches were found in the file");
+                    throw new ArgumentException($"For mapping attribute on column ({(mapping.Mapping.InternalColumnOrdinal.HasValue ? mapping.Mapping.ColumnOrdinal.ToString() : mapping.Mapping.ColumnName)}), multiple possible matches were found in the file");
 
                 var match = matchedMeta.Single();
                 match.SetTarget(mapping.Property, mapping.Mapping);
@@ -191,25 +194,15 @@ namespace TETL
             _isInitialised = true;
         }
         
-        private IEnumerable<PropertyToAttributeMap> MappingAttributes { get; set; }
+        /// <summary>
+        /// Append write records to an existing file rather than
+        /// creating a new file, adding headings, etc.
+        /// </summary>
+        public bool AppendMode { get; set; }
 
         /// <summary>
-        /// Current line number we are on
+        /// Are we currently at the end of the file?
         /// </summary>
-        public int LineNo { get; private set; }
-
-        private string[] _currentLine = null;
-
-        private Queue<string> ReadBuffer;
-
-        public string[] CurrentLine
-        {
-            get
-            {
-                return _currentLine;
-            }
-        }
-
         public bool IsEOF
         {
             get
@@ -217,15 +210,21 @@ namespace TETL
                 return _readStream.EndOfStream;
             }
         }
-            
+
+        public string[] CurrentLine { get; private set; }
+
         /// <summary>
-        /// Append write records
+        /// Current line number we are on
         /// </summary>
-        public bool AppendMode { get; set; }
+        public int LineNo { get; private set; }
+        
+        private Queue<string> _readBuffer;
 
+        private IEnumerable<PropertyToAttributeMap> MappingAttributes { get; set; }
 
         /// <summary>
-        /// Preamble lines
+        /// Preamble lines, when writing the text file from objects, any lines
+        /// you wish to appear at the top of the file before headings or the data
         /// </summary>
         public string[] PreambleLines { get; set; }
         
@@ -295,24 +294,24 @@ namespace TETL
         {
             // if we have to skip some footer rows, then check ahead because we need
             // to know where the end of the file is before we get there
-            while (ReadBuffer.Count < (this.SkipFooterRows + 1))
+            while (_readBuffer.Count < (this.SkipFooterRows + 1))
             {
                 if (_readStream.EndOfStream)
                     break;
 
-                ReadBuffer.Enqueue(_readStream.ReadLine());
+                _readBuffer.Enqueue(_readStream.ReadLine());
             }
 
-            if (_readStream.EndOfStream && ReadBuffer.Count == SkipFooterRows)
+            if (_readStream.EndOfStream && _readBuffer.Count == SkipFooterRows)
             {
-                _currentLine = null;
+                CurrentLine = null;
                 return false; // we reached the end of the file
             }
 
             LineNo++;
 
-            string nextLine = ReadBuffer.Dequeue();
-            _currentLine = nextLine
+            string nextLine = _readBuffer.Dequeue();
+            CurrentLine = nextLine
                 .Split(new[] { Delimiter }, StringSplitOptions.None);
 
             return true;
@@ -328,14 +327,14 @@ namespace TETL
 
             if (_readStream.EndOfStream)
             {
-                _currentLine = null;
+                CurrentLine = null;
                 return false; // we reached the end of the file
             }
             
             LineNo++;
 
             string nextLine = _readStream.ReadLine();
-            _currentLine = nextLine
+            CurrentLine = nextLine
                 .Split(new[] { Delimiter }, StringSplitOptions.None);
 
             return true;
@@ -402,12 +401,10 @@ namespace TETL
             /// <returns>True if a match, via either the column name or the ordinal</returns>
             public bool IsMatch(TextFileMappingAttribute mappingAttribute)
             {
-                if (mappingAttribute.ColumnOrdinal.HasValue && Ordinal == mappingAttribute.ColumnOrdinal.Value)
+                if (mappingAttribute.InternalColumnOrdinal.HasValue && Ordinal == mappingAttribute.InternalColumnOrdinal.Value)
                     return true;
-
                 if (mappingAttribute.ColumnName != null && ColumnHeader != null && ColumnHeader.Equals(mappingAttribute.ColumnName, StringComparison.OrdinalIgnoreCase))
                     return true;
-
                 return false;
             }
 

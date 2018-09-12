@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{D1243A
 		NuGet.Config = NuGet.Config
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TETL.Tests", "TETL.Tests\TETL.Tests.csproj", "{0A36958A-D85B-43D1-A17B-98B142EAFDC4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +22,10 @@ Global
 		{59E333AF-5FA0-4C53-8890-175A6E7A76D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{59E333AF-5FA0-4C53-8890-175A6E7A76D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{59E333AF-5FA0-4C53-8890-175A6E7A76D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A36958A-D85B-43D1-A17B-98B142EAFDC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A36958A-D85B-43D1-A17B-98B142EAFDC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A36958A-D85B-43D1-A17B-98B142EAFDC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A36958A-D85B-43D1-A17B-98B142EAFDC4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

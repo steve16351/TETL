@@ -13,18 +13,31 @@ namespace TETL
 {
     public class MsSqlServerDatabaseTextFileImport<T> : IDisposable where T : new()
     {
+        public class TransformEventArgs
+        {
+            public TransformEventArgs(DataRow row, int sourceLineNumber, int rowNumber, T sourceObject)
+            {
+                DataRow = row;
+                SourceLineNumber = sourceLineNumber;
+                RowNumber = rowNumber;
+                SourceObject = sourceObject;
+            }
+            
+            public DataRow DataRow { get; private set; }
+            public int SourceLineNumber { get; private set; }
+            public int RowNumber { get; private set; }
+            public T SourceObject { get; private set; }
+        }
+
+        public delegate void TransformEventHandler(object sender, TransformEventArgs e);
+
+        public event TransformEventHandler BeforeDataRowPopulate;
+        public event TransformEventHandler AfterDataRowPopulate;
+
         /// <summary>
         /// Contains the current buffer of data to save to the database
         /// </summary>
         public DataTable Buffer { get; set; }
-        /// <summary>
-        /// Custom transformation action to perform on the target object
-        /// </summary>
-        public Action<T> TransformObject { get; set; }
-        /// <summary>
-        /// Custom transformation action to perform on the target database row
-        /// </summary>
-        public Action<DataRow, T> TransformDataRow { get; set; }
         /// <summary>
         /// Maximum number of rows in the datatable before the data is flushed
         /// to the database
@@ -197,15 +210,18 @@ namespace TETL
             _writeTimer = Stopwatch.StartNew();            
             Buffer = CreateTable(tableName);
 
+            int rowNo = 0;
+
             foreach (T row in TextFileReader)
-            {
-                TransformObject?.Invoke(row);
+            {                
                 var dataRow = Buffer.NewRow();
+                TransformEventArgs args = new TransformEventArgs(dataRow, TextFileReader.LineNo, rowNo, row);
+                BeforeDataRowPopulate?.Invoke(this, args);
 
                 foreach (var metaData in MetaData)                
-                    dataRow[metaData.Ordinal] = metaData.GetValue(row) ?? DBNull.Value;                
+                    dataRow[metaData.Ordinal] = metaData.GetValue(row) ?? DBNull.Value;
 
-                TransformDataRow?.Invoke(dataRow, row);
+                AfterDataRowPopulate?.Invoke(this, args);
                 Buffer.Rows.Add(dataRow);
                 ExecuteFlush(false, tableName);
             }
@@ -215,8 +231,17 @@ namespace TETL
             _writeTimer.Stop();
         }
 
+        /// <summary>
+        /// Underlying SQL connection to use
+        /// </summary>
         public SqlConnection Connection { get; set; }
+        /// <summary>
+        /// Underlying transaction to use
+        /// </summary>
         public SqlTransaction Transaction { get; set; }
+        /// <summary>
+        /// Flush event handler
+        /// </summary>
         public event FlushEventHandler OnFlush;
         public delegate void FlushEventHandler(FlushEventArgs e);
 
@@ -228,8 +253,18 @@ namespace TETL
         }
 
         private Stopwatch _writeTimer = null;
-        public int RowsSaved { get; private set; }
         private Task _flushTask = null;
+
+        /// <summary>
+        /// Number of rows saved to the database
+        /// </summary>
+        public int RowsSaved { get; private set; }        
+        /// <summary>
+        /// If true, then the flush to the database is always done in sync, 
+        /// we don't carry on reading the file and populating the buffer
+        /// while waiting for the flush to complete
+        /// </summary>
+        public bool AlwaysSyncronousFlush { get; set; }
 
         public bool ExecuteFlush(bool final, string tableName)
         {
@@ -263,7 +298,7 @@ namespace TETL
                 OnFlush?.Invoke(new FlushEventArgs() { RowsSaved = RowsSaved, TotalElapsedTime = _writeTimer.Elapsed, DatabaseWriteTime = writeTime.Elapsed });
             });
 
-            if (final)
+            if (final || AlwaysSyncronousFlush)
                 _flushTask.Wait();
 
             return true;
