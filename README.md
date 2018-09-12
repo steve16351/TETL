@@ -34,7 +34,7 @@ public class WeightEntry
 
 ### 2 Create an instance of the TextFileSerializer
 ```csharp
-TextFileSerializer<MockData> textFileSerializer = new TextFileSerializer<MockData>(@"c:\temp\myTextFile")
+TextFileSerializer<WeightEntry> textFileSerializer = new TextFileSerializer<WeightEntry>(@"c:\temp\myTextFile")
 {
     Delimiter = ";",
     FirstRowHeader = true
