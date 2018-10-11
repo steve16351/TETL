@@ -266,6 +266,11 @@ namespace TETL
         /// </summary>
         public bool AlwaysSyncronousFlush { get; set; }
 
+        /// <summary>
+        /// Enables you to specify the timeout for the SQL bulk copy
+        /// </summary>
+        public int? BulkCopyTimeout { get; set; }
+
         public bool ExecuteFlush(bool final, string tableName)
         {
             if (Buffer.Rows.Count < (BatchSize ?? BATCH_SIZE_DEFAULT) && !final)
@@ -288,6 +293,7 @@ namespace TETL
 
                 using (SqlBulkCopy sqlBulkCopy = new SqlBulkCopy(Connection, SqlBulkCopyOptions.Default, Transaction))
                 {
+                    if (BulkCopyTimeout.HasValue) sqlBulkCopy.BulkCopyTimeout = BulkCopyTimeout.Value;
                     sqlBulkCopy.DestinationTableName = tableName;
                     sqlBulkCopy.WriteToServer(toFlush);
                     RowsSaved += toFlush.Rows.Count;
