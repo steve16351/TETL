@@ -15,6 +15,13 @@ namespace TETL.Converters
             if (bool.TryParse(value, out convertedValue))
                 return convertedValue;
 
+            int integerValue;
+            if (int.TryParse(value, out integerValue))
+            {
+                if (integerValue == 0) return false;
+                if (integerValue == 1) return true;
+            }
+
             throw new InvalidCastException();
         }
 

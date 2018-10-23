@@ -45,6 +45,7 @@ namespace TETL.Tests
                 for (int i = 0; i < (lines.Length - 1); i++)
                 {
                     enumerator.MoveNext();
+                    var currentMock = enumerator.Current;
                     lastLineNo = tfs.LineNo;
                     Assert.IsTrue(lastLineNo == i + 2);
                 }
