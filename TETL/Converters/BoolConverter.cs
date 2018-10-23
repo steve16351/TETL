@@ -6,7 +6,7 @@ namespace TETL.Converters
     {
         public override void SetValue(object target, string value)
         {
-            _setter((T)target, bool.Parse(value));
+            _setter((T)target, ParseBool(value));
         }
 
         public static bool ParseBool(string value)
