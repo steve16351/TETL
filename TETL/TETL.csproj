@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="Converters\BaseConverter.cs" />
     <Compile Include="Converters\BoolConverter.cs" />
+    <Compile Include="Converters\CharConverter.cs" />
     <Compile Include="Converters\DateTimeConverter.cs" />
     <Compile Include="Converters\DecimalConverter.cs" />
     <Compile Include="Converters\DoubleConverter.cs" />

@@ -25,6 +25,8 @@ namespace TETL.Converters
             _converters.Add(typeof(Int64?), typeof(NullableInt64Converter<T>));
             _converters.Add(typeof(bool), typeof(BoolConverter<T>));
             _converters.Add(typeof(bool?), typeof(NullableBoolConverter<T>));
+            _converters.Add(typeof(char), typeof(CharConverter<T>));
+            _converters.Add(typeof(char?), typeof(NullableCharConverter<T>));
         }
 
         public static IConvertAndSet Get(PropertyInfo info, TextFileMappingAttribute attribute)
