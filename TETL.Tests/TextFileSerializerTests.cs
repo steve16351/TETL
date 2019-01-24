@@ -71,7 +71,7 @@ namespace TETL.Tests
                 var enumerator = tfs.GetEnumerator();
 
                 var firstRow = tfs.First();
-                Assert.AreEqual(firstRow.Comment, "Hello;\"World\"");
+                Assert.AreEqual(firstRow.Comment, "Hello;World");
             };
         }
 
