@@ -354,22 +354,55 @@ namespace TETL
             if (!FieldsInQuotes)
                 return line.Split(new[] { Delimiter }, StringSplitOptions.None);
 
-            
-            var matches = _splitter.Matches(line);
-            List<string> fields = new List<string>(matches.Count);
-            foreach (Match match in matches)
+            return SplitQuotedLine(line, Delimiter)
+                .ToArray();
+        }
+
+
+        private List<string> SplitQuotedLine(string line, string delimiter)
+        {
+            StringBuilder builder = new StringBuilder();
+            int delimiterLength = delimiter.Length;
+            List<string> values = new List<string>();
+            int quoteDepth = 0;
+            bool lastWasDelim = false;
+
+            for (int i = 0; i < line.Length; i++)
             {
-                string value = null;
-                foreach (Group group in match.Groups)
+                bool lastChar = i == line.Length - 1;
+                string current = line[i].ToString();
+                string maybeDelim = line.Substring(i, Math.Min(delimiterLength, line.Length - i));
+                string nextMaybeDelim = line.Substring(i + 1, Math.Min(delimiterLength, line.Length - (i + 1)));
+                bool nextIsDelim = nextMaybeDelim.Equals(delimiter);
+                string peek = lastChar ? "" : line.Substring(i + 1, 1);
+                bool nextIsQuote = peek.Equals("\"");
+                bool isQuote = current.Equals("\"");
+
+                if (lastWasDelim && current.Equals("\"")) quoteDepth++;
+                if (nextIsDelim && current.Equals("\"")) quoteDepth--;
+
+                lastWasDelim = false;
+                bool isDelim = maybeDelim.Equals(delimiter) && quoteDepth == 0;
+
+                if (!isDelim)
                 {
-                    if (!group.Success) continue;
-                    value = group.Value.Replace("\"\"", "\"");                    
+                    builder.Append(current);
                 }
-                fields.Add(value);
+
+                if (isDelim)
+                {
+                    if (delimiterLength > 1) i = i + delimiterLength - 1;
+                    values.Add(builder.ToString().TrimEnd('"').TrimStart('"').Replace("\"\"", "\""));
+                    builder = new StringBuilder();
+                    lastWasDelim = true;
+                }
             }
 
-            return fields.ToArray();
+            values.Add(builder.ToString().TrimEnd('"').TrimStart('"').Replace("\"\"", "\""));
+
+            return values;
         }
+
 
         public void Dispose()
         {

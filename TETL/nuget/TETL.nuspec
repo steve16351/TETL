@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>TETL</id>
-    <version>1.0.9</version>
+    <version>1.1.1</version>
     <title>TETL</title>
     <authors>Steve Hart</authors>
     <owners>Steve Hart</owners>
@@ -13,7 +13,7 @@
     <summary>Lightweight C# library to facilitate text file serialisation</summary>
     <language>en-GB</language>
     <repository type="git" url="https://github.com/steve16351/TETL" />
-    <releaseNotes>v1.1.0: improve feature for handling quote escaping.</releaseNotes>
+    <releaseNotes>v1.1.1: change of approach for handling quotes.</releaseNotes>
     <tags>ETL text parsing csv</tags>
     <copyright>Copyright © 2019 Steve Hart</copyright>
   </metadata>
