@@ -15,5 +15,6 @@
     <repository type="git" url="https://github.com/steve16351/TETL" />
     <releaseNotes>v1.0.7: bug fix for parsing 64-bit integer numbers.</releaseNotes>
     <tags>ETL text parsing csv</tags>
+    <copyright>Copyright © 2019 Steve Hart</copyright>
   </metadata>
 </package>
