@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using TETL.Attributes;
 using TETL.Converters;
@@ -353,6 +354,7 @@ namespace TETL
             if (!FieldsInQuotes)
                 return line.Split(new[] { Delimiter }, StringSplitOptions.None);
 
+            
             var matches = _splitter.Matches(line);
             List<string> fields = new List<string>(matches.Count);
             foreach (Match match in matches)
@@ -361,7 +363,7 @@ namespace TETL
                 foreach (Group group in match.Groups)
                 {
                     if (!group.Success) continue;
-                    value = group.Value;
+                    value = group.Value.Replace("\"\"", "\"");                    
                 }
                 fields.Add(value);
             }

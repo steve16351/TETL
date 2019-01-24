@@ -28,7 +28,7 @@ namespace TETL.Tests.Mocks
             var memoryStream = new MemoryStream();
             using (var writer = new StreamWriter(memoryStream, Encoding.UTF8, 32768, true))
             {                
-                writer.WriteLine("Fred;71.3;165;19870521;1;4412237238;\"Hello;World\"");
+                writer.WriteLine("Fred;71.3;165;19870521;1;4412237238;\"Hello;\"\"World\"\"\"");
                 writer.WriteLine("Andy;80.2;180; ;1;4412237238;OK1");
                 writer.WriteLine("Jane;63.5;160;19890622;0;4412237238;OK2");
             }
