@@ -6,8 +6,7 @@ namespace TETL.Converters
     {
         public override void SetValue(object target, string value)
         {
-            if (value == null) return;
-            if (value.Length < 1) return;
+            if (String.IsNullOrWhiteSpace(value)) return;
             _setter((T)target, value[0]);
         }
 
