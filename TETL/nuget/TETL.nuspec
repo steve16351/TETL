@@ -3,7 +3,9 @@
   <metadata>
     <id>TETL</id>
     <version>1.0.7</version>
+    <title>TETL</title>
     <authors>Steve Hart</authors>
+    <owners>Steve Hart</owners>
     <license type="expression">MIT</license>
     <projectUrl>https://github.com/steve16351/TETL</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -12,5 +14,6 @@
     <language>en-GB</language>
     <repository type="git" url="https://github.com/steve16351/TETL" />
     <releaseNotes>v1.0.7: bug fix for parsing 64-bit integer numbers.</releaseNotes>
+    <tags>ETL text parsing csv</tags>
   </metadata>
 </package>
