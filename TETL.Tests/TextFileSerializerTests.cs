@@ -54,6 +54,28 @@ namespace TETL.Tests
             };
         }
 
+
+        [TestMethod]
+        public void TestTextFileSerializer_WillHandle_FieldInQuotes()
+        {
+            using (var data = MockData.GetDataNoHeaderRow())
+            {
+                TextFileSerializer<MockData> tfs = new TextFileSerializer<MockData>(data)
+                {
+                    Delimiter = ";",
+                    FirstRowHeader = false,
+                    FieldsInQuotes = true
+                };
+
+                string[] lines = data.ReadLines();
+                var enumerator = tfs.GetEnumerator();
+
+                var firstRow = tfs.First();
+                Assert.AreEqual(firstRow.Comment, "Hello;World");
+            };
+        }
+
+
         [TestMethod]
         public void TestTextFileSerializer_LineNo_IncrementsCorrectly_WithNoHeaderRow()
         {

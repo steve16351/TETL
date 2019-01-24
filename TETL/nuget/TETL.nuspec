@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>TETL</id>
-    <version>1.0.8</version>
+    <version>1.0.9</version>
     <title>TETL</title>
     <authors>Steve Hart</authors>
     <owners>Steve Hart</owners>
@@ -13,7 +13,7 @@
     <summary>Lightweight C# library to facilitate text file serialisation</summary>
     <language>en-GB</language>
     <repository type="git" url="https://github.com/steve16351/TETL" />
-    <releaseNotes>v1.0.8: change character conversion to ignore whitespace.</releaseNotes>
+    <releaseNotes>v1.0.9: add option to handle fields enclosed with quotes.</releaseNotes>
     <tags>ETL text parsing csv</tags>
     <copyright>Copyright © 2019 Steve Hart</copyright>
   </metadata>

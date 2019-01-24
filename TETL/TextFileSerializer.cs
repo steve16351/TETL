@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using TETL.Attributes;
 using TETL.Converters;
 using TETL.Exceptions;
@@ -49,6 +50,10 @@ namespace TETL
         /// Delimiter to spit rows into columns
         /// </summary>
         public string Delimiter { get; set; }
+        /// <summary>
+        /// Check for fields enclosed with quotes to escape delimiters
+        /// </summary>
+        public bool FieldsInQuotes { get; set; }
         /// <summary>
         /// All meta data
         /// </summary>
@@ -122,8 +127,7 @@ namespace TETL
                 if (String.IsNullOrWhiteSpace(headerRow))
                     throw new InvalidOperationException($"No header row found but one was expected");
 
-                MetaData = headerRow
-                    .Split(new[] { Delimiter }, StringSplitOptions.None)
+                MetaData = SplitLine(headerRow)
                     .Select((a, i) => new ColumnMetaData() { ColumnHeader = a.Trim(), Ordinal = i })
                     .ToArray();
             }
@@ -191,6 +195,7 @@ namespace TETL
                 textFileMapping.ThrowIfInvalid();
 
             MappingAttributes = mappings;
+            if (FieldsInQuotes) _splitter = GenerateSplitter();
             _isInitialised = true;
         }
         
@@ -311,9 +316,7 @@ namespace TETL
             LineNo++;
 
             string nextLine = _readBuffer.Dequeue();
-            CurrentLine = nextLine
-                .Split(new[] { Delimiter }, StringSplitOptions.None);
-
+            CurrentLine = SplitLine(nextLine);
             return true;
         }
 
@@ -334,10 +337,36 @@ namespace TETL
             LineNo++;
 
             string nextLine = _readStream.ReadLine();
-            CurrentLine = nextLine
-                .Split(new[] { Delimiter }, StringSplitOptions.None);
-
+            CurrentLine = SplitLine(nextLine);
             return true;
+        }
+
+        private Regex _splitter = null;
+
+        private Regex GenerateSplitter()
+        {            
+            return new Regex($"(?:^\"|{Delimiter}\")(\"\"|[\\w\\W]*?)(?=\"{Delimiter}|\"$)|(?:^(?!\")|{Delimiter}(?!\"))([^{Delimiter}]*?)(?=$|{Delimiter})|(\r\n|\n)", RegexOptions.Compiled);
+        }
+
+        private string[] SplitLine(string line)
+        {
+            if (!FieldsInQuotes)
+                return line.Split(new[] { Delimiter }, StringSplitOptions.None);
+
+            var matches = _splitter.Matches(line);
+            List<string> fields = new List<string>(matches.Count);
+            foreach (Match match in matches)
+            {
+                string value = null;
+                foreach (Group group in match.Groups)
+                {
+                    if (!group.Success) continue;
+                    value = group.Value;
+                }
+                fields.Add(value);
+            }
+
+            return fields.ToArray();
         }
 
         public void Dispose()

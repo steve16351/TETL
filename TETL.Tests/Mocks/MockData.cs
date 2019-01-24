@@ -19,6 +19,8 @@ namespace TETL.Tests.Mocks
         public bool IsMale { get; set; }
         [TextFileMappingAttribute(ColumnName = "SSN", ColumnOrdinal = 5)]
         public long SSN { get; set; }
+        [TextFileMappingAttribute(ColumnName = "Comment", ColumnOrdinal = 6)]
+        public string Comment { get; set; }
 
 
         public static Stream GetDataNoHeaderRow()
@@ -26,9 +28,9 @@ namespace TETL.Tests.Mocks
             var memoryStream = new MemoryStream();
             using (var writer = new StreamWriter(memoryStream, Encoding.UTF8, 32768, true))
             {                
-                writer.WriteLine("Fred;71.3;165;19870521;1;4412237238");
-                writer.WriteLine("Andy;80.2;180; ;1;4412237238");
-                writer.WriteLine("Jane;63.5;160;19890622;0;4412237238");
+                writer.WriteLine("Fred;71.3;165;19870521;1;4412237238;\"Hello;World\"");
+                writer.WriteLine("Andy;80.2;180; ;1;4412237238;OK1");
+                writer.WriteLine("Jane;63.5;160;19890622;0;4412237238;OK2");
             }
 
             memoryStream.Position = 0;
@@ -40,10 +42,10 @@ namespace TETL.Tests.Mocks
             var memoryStream = new MemoryStream();
             using (var writer = new StreamWriter(memoryStream, Encoding.UTF8, 32768, true))
             {
-                writer.WriteLine("Name;Weight;Height;DateOfBirth;IsMale;SSN");
-                writer.WriteLine("Fred;71.3;165;19870521;1;4412237238");
-                writer.WriteLine("Andy;80.2;180; ;1;4412237240");
-                writer.WriteLine("Jane;63.5;160;19890622;0;4412237239");
+                writer.WriteLine("Name;Weight;Height;DateOfBirth;IsMale;SSN;Comment");
+                writer.WriteLine("Fred;71.3;165;19870521;1;4412237238;\"Hello;World\"");
+                writer.WriteLine("Andy;80.2;180; ;1;4412237240;OK1");
+                writer.WriteLine("Jane;63.5;160;19890622;0;4412237239;OK2");
             }
 
             memoryStream.Position = 0;
@@ -55,10 +57,10 @@ namespace TETL.Tests.Mocks
             var memoryStream = new MemoryStream();
             using (var writer = new StreamWriter(memoryStream, Encoding.UTF8, 32768, true))
             {
-                writer.WriteLine("Name;Weight;Height;DateOfBirth;IsMale;SSN");
-                writer.WriteLine("Fred;71.3;165;19870521;1;4412237238");
-                writer.WriteLine("Andy;80.2;180; ;1;4412237240");
-                writer.WriteLine("Jane;63.5;160;19890622;0;4412237239");
+                writer.WriteLine("Name;Weight;Height;DateOfBirth;IsMale;SSN;Comment");
+                writer.WriteLine("Fred;71.3;165;19870521;1;4412237238;\"Hello;World\"");
+                writer.WriteLine("Andy;80.2;180; ;1;4412237240;OK1");
+                writer.WriteLine("Jane;63.5;160;19890622;0;4412237239;OK2");
                 writer.WriteLine("End Of File");
             }
 
