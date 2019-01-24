@@ -11,7 +11,7 @@ namespace TETL.Converters
 
         public override void SetValue(object target, string value)
         {
-            _setter((T)target, Int32.Parse(value));
+            _setter((T)target, Int64.Parse(value));
         }
     }
 
