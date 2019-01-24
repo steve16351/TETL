@@ -196,7 +196,6 @@ namespace TETL
                 textFileMapping.ThrowIfInvalid();
 
             MappingAttributes = mappings;
-            if (FieldsInQuotes) _splitter = GenerateSplitter();
             _isInitialised = true;
         }
         
@@ -341,14 +340,7 @@ namespace TETL
             CurrentLine = SplitLine(nextLine);
             return true;
         }
-
-        private Regex _splitter = null;
-
-        private Regex GenerateSplitter()
-        {            
-            return new Regex($"(?:^\"|{Delimiter}\")(\"\"|[\\w\\W]*?)(?=\"{Delimiter}|\"$)|(?:^(?!\")|{Delimiter}(?!\"))([^{Delimiter}]*?)(?=$|{Delimiter})|(\r\n|\n)", RegexOptions.Compiled);
-        }
-
+        
         private string[] SplitLine(string line)
         {
             if (!FieldsInQuotes)
@@ -357,49 +349,35 @@ namespace TETL
             return SplitQuotedLine(line, Delimiter)
                 .ToArray();
         }
-
-
+        
         private List<string> SplitQuotedLine(string line, string delimiter)
         {
             StringBuilder builder = new StringBuilder();
             int delimiterLength = delimiter.Length;
             List<string> values = new List<string>();
-            int quoteDepth = 0;
-            bool lastWasDelim = false;
+            int quoteSeen = 0;
 
             for (int i = 0; i < line.Length; i++)
             {
-                bool lastChar = i == line.Length - 1;
                 string current = line[i].ToString();
-                string maybeDelim = line.Substring(i, Math.Min(delimiterLength, line.Length - i));
-                string nextMaybeDelim = line.Substring(i + 1, Math.Min(delimiterLength, line.Length - (i + 1)));
-                bool nextIsDelim = nextMaybeDelim.Equals(delimiter);
-                string peek = lastChar ? "" : line.Substring(i + 1, 1);
-                bool nextIsQuote = peek.Equals("\"");
-                bool isQuote = current.Equals("\"");
+                string maybeDelim = line.Substring(i, Math.Min(delimiter.Length, line.Length - i));
 
-                if (lastWasDelim && current.Equals("\"")) quoteDepth++;
-                if (nextIsDelim && current.Equals("\"")) quoteDepth--;
+                if (current.Equals("\""))
+                    quoteSeen++;
 
-                lastWasDelim = false;
-                bool isDelim = maybeDelim.Equals(delimiter) && quoteDepth == 0;
+                bool isDelimiter = maybeDelim.Equals(delimiter) && (quoteSeen % 2 == 0);
 
-                if (!isDelim)
-                {
+                if (!isDelimiter)
                     builder.Append(current);
-                }
-
-                if (isDelim)
+                else
                 {
-                    if (delimiterLength > 1) i = i + delimiterLength - 1;
+                    quoteSeen = 0;
+                    if (delimiter.Length > 1) i = i + delimiter.Length - 1;
                     values.Add(builder.ToString().TrimEnd('"').TrimStart('"').Replace("\"\"", "\""));
                     builder = new StringBuilder();
-                    lastWasDelim = true;
                 }
             }
-
             values.Add(builder.ToString().TrimEnd('"').TrimStart('"').Replace("\"\"", "\""));
-
             return values;
         }
 
