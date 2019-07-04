@@ -1,5 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
+using TETL.Attributes;
+using TETL.Converters;
 using TETL.Tests.Mocks;
 using TETL.Tests.Utils;
 
@@ -25,6 +27,22 @@ namespace TETL.Tests
                 Assert.AreEqual(rowCount, lines.Count() - 2);
                 Assert.AreEqual(tfs.LineNo, lines.Count() - tfs.SkipFooterRows);
             }
+        }
+
+        public class MyObject {
+            [TextFileMapping("MyDecimal")]
+            public decimal MyProperty { get; set; }
+        }
+
+        [TestMethod]
+        public void TestDecimalConverter_CanHandleExponential()
+        {
+            DecimalConverter<MyObject> converter = new DecimalConverter<MyObject>();
+            MyObject o = new MyObject();
+            var myProp = typeof(MyObject).GetProperty("MyProperty");
+            converter.Setup(myProp, new TextFileMappingAttribute() { ColumnName = "MyDecimal" });
+            converter.SetValue(o, "3.08600834621439E-05");
+            Assert.IsTrue(o.MyProperty == 3.08600834621439E-05M);
         }
 
         [TestMethod]

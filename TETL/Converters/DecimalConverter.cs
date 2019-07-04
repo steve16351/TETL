@@ -11,7 +11,7 @@ namespace TETL.Converters
 
         public override void SetValue(object target, string value)
         {
-            _setter((T)target, decimal.Parse(value));
+            _setter((T)target, decimal.Parse(value, System.Globalization.NumberStyles.Float));
         }
     }
 
@@ -25,7 +25,7 @@ namespace TETL.Converters
         public override void SetValue(object target, string value)
         {
             if (String.IsNullOrWhiteSpace(value)) return;
-            _setter((T)target, decimal.Parse(value));
+            _setter((T)target, decimal.Parse(value, System.Globalization.NumberStyles.Float));
         }
     }
 }

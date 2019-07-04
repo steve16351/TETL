@@ -10,7 +10,7 @@ namespace TETL.Tests.Mocks
         [TextFileMappingAttribute(ColumnName = "Name", ColumnOrdinal = 0)]
         public string Name { get; set; }
         [TextFileMappingAttribute(ColumnName = "Weight", ColumnOrdinal = 1)]
-        public double Weight { get; set; }
+        public decimal Weight { get; set; }
         [TextFileMappingAttribute(ColumnName = "Height", ColumnOrdinal = 2)]
         public int Height { get; set; }
         [TextFileMappingAttribute(ColumnName = "DateOfBirth", ColumnOrdinal = 3, DateTimeFormat = "yyyyMMdd")]

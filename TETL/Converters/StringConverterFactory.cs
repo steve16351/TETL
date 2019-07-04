@@ -29,6 +29,23 @@ namespace TETL.Converters
             _converters.Add(typeof(char?), typeof(NullableCharConverter<T>));
         }
 
+        /// <summary>
+        /// Allow custom converter to be injected
+        /// </summary>
+        /// <param name="type">Source type the converter targets</param>
+        /// <param name="converterType">Type of the converter</param>
+        public static void AddOrReplaceConverter(Type type, Type converterType)
+        {
+            if (_converters.ContainsKey(type)) _converters.Remove(type);
+            _converters.Add(type, converterType);
+        }
+
+        /// <summary>
+        /// Retrieve a converter for the specified property
+        /// </summary>
+        /// <param name="info">Property info</param>
+        /// <param name="attribute">Tax mapping attribute</param>
+        /// <returns>Converter</returns>
         public static IConvertAndSet Get(PropertyInfo info, TextFileMappingAttribute attribute)
         {
             Type converterType;
