@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ColumnMetaData.cs" />
     <Compile Include="Converters\BaseConverter.cs" />
     <Compile Include="Converters\BoolConverter.cs" />
     <Compile Include="Converters\CharConverter.cs" />
@@ -58,6 +59,13 @@
     <Compile Include="Converters\IConverter.cs" />
     <Compile Include="Converters\Int32Converter.cs" />
     <Compile Include="Converters\Int64Converter.cs" />
+    <Compile Include="Converters\NullableBoolConverter.cs" />
+    <Compile Include="Converters\NullableCharConverter.cs" />
+    <Compile Include="Converters\NullableDateTimeConverter.cs" />
+    <Compile Include="Converters\NullableDecimalConverter.cs" />
+    <Compile Include="Converters\NullableDoubleConverter.cs" />
+    <Compile Include="Converters\NullableInt32Converter.cs" />
+    <Compile Include="Converters\NullableInt64Converter.cs" />
     <Compile Include="Converters\StringConverter.cs" />
     <Compile Include="Converters\StringConverterFactory.cs" />
     <Compile Include="Attributes\DatabaseMappingAttribute.cs" />
@@ -66,6 +74,7 @@
     <Compile Include="Exceptions\TETLConversionException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Attributes\TextFileMappingAttribute.cs" />
+    <Compile Include="TextFileEnumerator.cs" />
     <Compile Include="TextFileSerializer.cs" />
   </ItemGroup>
   <ItemGroup>

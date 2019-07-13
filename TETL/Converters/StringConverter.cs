@@ -1,20 +1,38 @@
-﻿using System;
+﻿// TETL Copyright (c) Steve Hart. All Rights Reserved.
+// Licensed under the MIT Licence. See LICENSE in the project root for license information.
+using System;
 
 namespace TETL.Converters
 {
+    /// <summary>
+    /// Provides get/set capability for string properties to strings
+    /// </summary>
+    /// <typeparam name="T">Target object type</typeparam>
     public class StringConverter<T> : BaseConverter<T, string>, IConvertAndSet
     {
-        public override string GetValue(object target)
-        {
-            return _getter((T)target) ?? String.Empty;
-        }
-        
+        /// <summary>
+        /// Converts and sets a value on the target object for the property
+        /// this converter is associated with
+        /// </summary>
+        /// <param name="target">Target object</param>
+        /// <param name="value">Value to set as a string which will be converted</param>
         public override void SetValue(object target, string value)
         {
-            if (String.IsNullOrWhiteSpace(value))
+            if (string.IsNullOrWhiteSpace(value))
                 value = null;
 
-            _setter((T)target, value?.Trim());
+            this.Setter((T)target, value?.Trim());
+        }
+
+        /// <summary>
+        /// Converts and gets a value from the target object for the property
+        /// this converter is associated with
+        /// </summary>
+        /// <param name="target">Target object</param>
+        /// <returns>Boolean string value</returns>
+        public override string GetValue(object target)
+        {
+            return this.Getter((T)target) ?? string.Empty;
         }
     }
 }

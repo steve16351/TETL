@@ -1,14 +1,29 @@
-﻿using System;
+﻿// TETL Copyright (c) Steve Hart. All Rights Reserved.
+// Licensed under the MIT Licence. See LICENSE in the project root for license information.
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using TETL.Attributes;
 
 namespace TETL.Converters
 {
+    /// <summary>
+    /// Provides a factory of converters to to/from property 
+    /// types to/from strings
+    /// </summary>
+    /// <typeparam name="T">Target object type</typeparam>
     public static class StringConverterFactory<T>
     {
+        /// <summary>
+        /// Holds a mapping of types to the types of the conversion classes
+        /// available to provide a bi-directional string conversion
+        /// </summary>
         private static Dictionary<Type, Type> _converters = new Dictionary<Type, Type>();
 
+        /// <summary>
+        /// Initializes static members of the <see cref="StringConverterFactory{T}" /> class.
+        /// Sets up build in converter types.
+        /// </summary>
         static StringConverterFactory()
         {
             _converters = new Dictionary<Type, Type>();
@@ -19,10 +34,10 @@ namespace TETL.Converters
             _converters.Add(typeof(decimal?), typeof(NullableDecimalConverter<T>));
             _converters.Add(typeof(DateTime), typeof(DateTimeConverter<T>));
             _converters.Add(typeof(DateTime?), typeof(NullableDateTimeConverter<T>));
-            _converters.Add(typeof(Int32), typeof(Int32Converter<T>));
-            _converters.Add(typeof(Int32?), typeof(NullableInt32Converter<T>));
-            _converters.Add(typeof(Int64), typeof(Int64Converter<T>));
-            _converters.Add(typeof(Int64?), typeof(NullableInt64Converter<T>));
+            _converters.Add(typeof(int), typeof(Int32Converter<T>));
+            _converters.Add(typeof(int?), typeof(NullableInt32Converter<T>));
+            _converters.Add(typeof(long), typeof(Int64Converter<T>));
+            _converters.Add(typeof(long?), typeof(NullableInt64Converter<T>));
             _converters.Add(typeof(bool), typeof(BoolConverter<T>));
             _converters.Add(typeof(bool?), typeof(NullableBoolConverter<T>));
             _converters.Add(typeof(char), typeof(CharConverter<T>));
@@ -45,7 +60,7 @@ namespace TETL.Converters
         /// </summary>
         /// <param name="info">Property info</param>
         /// <param name="attribute">Tax mapping attribute</param>
-        /// <returns>Converter</returns>
+        /// <returns>An IConvertAndSet instance that will provide string conversion for the specified property</returns>
         public static IConvertAndSet Get(PropertyInfo info, TextFileMappingAttribute attribute)
         {
             Type converterType;

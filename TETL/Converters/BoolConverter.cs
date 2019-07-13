@@ -1,14 +1,26 @@
-﻿using System;
+﻿// TETL Copyright (c) Steve Hart. All Rights Reserved.
+// Licensed under the MIT Licence. See LICENSE in the project root for license information.
+
+using System;
 
 namespace TETL.Converters
 {
+    /// <summary>
+    /// Provides get/set capability for boolean properties to strings
+    /// </summary>
+    /// <typeparam name="T">Target object type</typeparam>
     public class BoolConverter<T> : BaseConverter<T, bool>, IConvertAndSet
     {
-        public override void SetValue(object target, string value)
-        {
-            _setter((T)target, ParseBool(value));
-        }
-
+        /// <summary>
+        /// Parse a boolean value from a string value
+        /// </summary>
+        /// <remarks>
+        /// This will use standard string to bool conversion methods first,
+        /// but will also handle integer to bool conversion, accepting strings
+        /// that represent 1 or 0 and converting to true or false respectively.
+        /// </remarks>
+        /// <param name="value">String value to parse to a boolean</param>
+        /// <returns>True or false</returns>
         public static bool ParseBool(string value)
         {
             bool convertedValue;
@@ -25,23 +37,26 @@ namespace TETL.Converters
             throw new InvalidCastException();
         }
 
-        public override string GetValue(object target)
-        {
-            return _getter((T)target).ToString();
-        }
-    }
-
-    public class NullableBoolConverter<T> : BaseConverter<T, bool?>, IConvertAndSet
-    {
+        /// <summary>
+        /// Converts and sets a value on the target object for the property
+        /// this converter is associated with
+        /// </summary>
+        /// <param name="target">Target object</param>
+        /// <param name="value">Value to set as a string which will be converted</param>
         public override void SetValue(object target, string value)
         {
-            if (String.IsNullOrWhiteSpace(value)) return;
-            _setter((T)target, BoolConverter<bool>.ParseBool(value));
+            this.Setter((T)target, ParseBool(value));
         }
 
+        /// <summary>
+        /// Converts and gets a value from the target object for the property
+        /// this converter is associated with
+        /// </summary>
+        /// <param name="target">Target object</param>
+        /// <returns>Boolean string value</returns>
         public override string GetValue(object target)
         {
-            return _getter((T)target)?.ToString() ?? String.Empty;
+            return this.Getter((T)target).ToString();
         }
     }
 }

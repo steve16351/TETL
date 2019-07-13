@@ -1,31 +1,35 @@
-﻿using System;
+﻿// TETL Copyright (c) Steve Hart. All Rights Reserved.
+// Licensed under the MIT Licence. See LICENSE in the project root for license information.
+using System;
 
 namespace TETL.Converters
 {
-    public class Int32Converter<T> : BaseConverter<T, Int32>, IConvertAndSet
+    /// <summary>
+    /// Provides get/set capability for Int32 properties to strings
+    /// </summary>
+    /// <typeparam name="T">Target object type</typeparam>
+    public class Int32Converter<T> : BaseConverter<T, int>, IConvertAndSet
     {
-        public override string GetValue(object target)
-        {
-            return _getter((T)target).ToString();
-        }
-
+        /// <summary>
+        /// Converts and sets a value on the target object for the property
+        /// this converter is associated with
+        /// </summary>
+        /// <param name="target">Target object</param>
+        /// <param name="value">Value to set as a string which will be converted</param>
         public override void SetValue(object target, string value)
         {
-            _setter((T)target, Int32.Parse(value));
+            this.Setter((T)target, int.Parse(value));
         }
-    }
 
-    public class NullableInt32Converter<T> : BaseConverter<T, Int32?>, IConvertAndSet
-    {
+        /// <summary>
+        /// Converts and gets a value from the target object for the property
+        /// this converter is associated with
+        /// </summary>
+        /// <param name="target">Target object</param>
+        /// <returns>Boolean string value</returns>
         public override string GetValue(object target)
         {
-            return _getter((T)target)?.ToString() ?? String.Empty;
-        }
-
-        public override void SetValue(object target, string value)
-        {
-            if (String.IsNullOrWhiteSpace(value)) return;
-            _setter((T)target, Int32.Parse(value));
+            return Getter((T)target).ToString();
         }
     }
 }
