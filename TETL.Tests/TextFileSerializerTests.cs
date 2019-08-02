@@ -11,6 +11,26 @@ namespace TETL.Tests
     public class TextFileSerializerTests
     {
         [TestMethod]
+        public void TestSkipPredicate_WillSkipRowIfMatched()
+        {
+            using (var data = MockData.GetDataNoHeaderRow())
+            {
+                TextFileSerializer<MockData> tfs = new TextFileSerializer<MockData>(data)
+                {
+                    Delimiter = ";",
+                    FirstRowHeader = false,
+                    SkipFooterRows = 0,
+                    SkipPredicate = new TextFileSerializer<MockData>.SkipRow((a) => a.Name.Equals("Fred"))
+                };
+
+                string[] lines = data.ReadLines();
+                var rowCount = tfs.Count();
+                Assert.AreEqual(rowCount, lines.Count() - 1);
+                Assert.AreEqual(tfs.LineNo, lines.Count() - tfs.SkipFooterRows);
+            }
+        }
+
+        [TestMethod]
         public void TestTextFileSerializer_WillSkipFooterRow_WithHeaderRow()
         {
             using (var data = MockData.GetDataWithHeaderRowAndFooter())

@@ -14,6 +14,12 @@ namespace TETL
     public class TextFileEnumerator<T> : IEnumerator<T> where T : new()
     {
         /// <summary>
+        /// IF the serializer contains a skip predicate; whether we are skipping 
+        /// the current row when moving the enumerator forward
+        /// </summary>
+        private bool _skip = true;
+
+        /// <summary>
         /// Parent serializer instance
         /// </summary>
         private TextFileSerializer<T> _parent;
@@ -62,13 +68,18 @@ namespace TETL
         /// <returns>True if move forward, false if the end</returns>
         public bool MoveNext()
         {
-            if (_current == null)
+            bool readOk = false;
+            do
             {
-                return Read();
+                if (_current != null)
+                    _parent.ReadNext();
+                
+                _skip = false;
+                readOk = Read();
             }
+            while (_skip);
 
-            var ok = _parent.ReadNext();
-            return Read();
+            return readOk;
         }
 
         /// <summary>
@@ -120,6 +131,9 @@ namespace TETL
                     };
                 }
             }
+            
+            if (_parent.SkipPredicate != null)
+                _skip = _parent.SkipPredicate(_current);
 
             return true;
         }

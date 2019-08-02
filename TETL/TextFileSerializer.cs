@@ -79,6 +79,13 @@ namespace TETL
         }
 
         /// <summary>
+        /// Predicate delegate, used for skipping rows
+        /// </summary>
+        /// <param name="row">Row to skip</param>
+        /// <returns>True if row should be skipped in enumeration</returns>
+        public delegate bool SkipRow(T row);
+
+        /// <summary>
         /// Gets or sets the number of rows at the top of the file to skip
         /// </summary>
         public int SkipHeaderRows { get; set; }
@@ -144,13 +151,18 @@ namespace TETL
         /// Gets or sets preamble lines, when writing the text file from objects, any lines
         /// you wish to appear at the top of the file before headings or the data
         /// </summary>
-        public string[] PreambleLines { get; set; }
+        public string[] PreambleLines { get; set; }        
+
+        /// <summary>
+        /// Gets or sets a predicate which will cause a row to be skipped if matched, optional
+        /// </summary>
+        public SkipRow SkipPredicate { get; set; }
 
         /// <summary>
         /// Gets or sets the mapping of properties on the target type to attributes associated with them
         /// </summary>
         private IEnumerable<PropertyToAttributeMap> MappingAttributes { get; set; }
-        
+
         /// <summary>
         /// If needed, and not in append mode - add skipped lines, 
         /// and headings
@@ -262,7 +274,7 @@ namespace TETL
             CurrentLine = SplitLine(nextLine);
             return true;
         }
-        
+                
         /// <summary>
         /// Initialize for write operations
         /// </summary>

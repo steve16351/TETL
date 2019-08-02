@@ -208,7 +208,7 @@ namespace TETL
         /// Gets or sets the text file serializer instance from which source data is read
         /// </summary>
         private TextFileSerializer<T> TextFileReader { get; set; }
-                
+                               
         /// <summary>
         /// Create database table instance
         /// </summary>
